@@ -1,0 +1,11 @@
+/ipch
+/Release/*.tlog
+/Release/*.obj
+/Release/*.manifest
+/Release/*.log
+/Release/*.lastbuildstate
+/Release/*.pdb
+/*.opensdf
+/*.sdf
+/*.suo
+/*.user
