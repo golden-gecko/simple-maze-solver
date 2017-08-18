@@ -1,482 +1,314 @@
-/*
- *
- *	Maze 1.0
- *	Copyright (C) 2007  Wojciech Holisz (wojciech.holisz@gmail.com)
- *
- */
-
-//------------------------------------------------------------------------------
-
-#include <windows.h>
-#include <stdio.h>
-#include <conio.h>
-
-#include <string>
+#include <iostream>
+#include <fstream>
 #include <list>
+#include <vector>
 
-using namespace std;
+enum Type
+{
+    Empty = -1,
+    Wall = -2,
+    Start = -3,
+    End = -4,
+    Way = -5
+};
 
-//------------------------------------------------------------------------------
+std::vector<int> maze;
 
-#define EMPTY   -1
-#define WALL    -2
-#define START   -3
-#define END     -4
-#define WAY     -5
+int sizeX = 0;
+int sizeY = 0;
 
-//------------------------------------------------------------------------------
+int startPos = 0;
+int endPos = 0;
 
-short * maze	= NULL; //	Tutaj przechowywane sa dane labiryntu
+void loadMaze(const std::string& fileName)
+{
+    std::ifstream file(fileName, std::ios::binary | std::ios::ate);
+    auto fileSize = file.tellg();
+    file.seekg(0, file.beg);
+    std::vector<char> data(fileSize);
+    file.read(data.data(), fileSize);
+    file.close();
 
-WORD sizeX      = 0;    //	Wymiary labiryntu
-WORD sizeY      = 0;
+    sizeX = 0;
+    sizeY = 0;
 
-WORD startPos   = 0;    //	Pozycja poczatkowa
-WORD endPos     = 0;    //	Pozycja koncowa
+    for (auto i = 0; i < fileSize; i++)
+    {
+        if (data[i] == '\n')
+        {
+            if (sizeY == 0)
+            {
+                sizeX = i;
+            }
 
-//------------------------------------------------------------------------------
+            sizeY += 1;
+        }
+    }
 
-// loadMaze - wczytuje labirynt z pliku tekstowego, w ktorym:
-//
-// 0 - oznacza przejscie,
-// 1 - oznacza sciane,
-// S - pozycje poczatkowa
-// K - pozycje koncowa
+    maze.resize(sizeX * sizeY);
 
-//------------------------------------------------------------------------------
+    auto index = 0;
 
-void loadMaze(string fileName){
+    for (auto y = 0; y < sizeY; y++)
+    {
+        for (auto x = 0; x < sizeX; x++)
+        {
+            maze[y * sizeX + x] = data[index++];
+        }
 
-	// Otworz plik.
+        index += 1;
+    }
 
-	FILE * file;
-	
-	fopen_s(&file, fileName.c_str(), "rb");
+    for (auto i = 0; i < sizeX * sizeY; i++)
+    {
+        switch (maze[i])
+        {
+            case '0':
+                maze[i] = Type::Empty;
+                break;
 
-	if (!file) {
+            case '1':
+                maze[i] = Type::Wall;
+                break;
 
-		printf("File not found!");
+            case 'S':
+                maze[i] = Type::Start;
+                startPos = i;
+                break;
 
-		return;
-
-	}
-
-
-	// Odczytaj rozmiar pliku.
-
-	fpos_t fileSize = 0;
-
-	fseek(file, 0, SEEK_END);
-	fgetpos(file, &fileSize);
-	fseek(file, 0, SEEK_SET);	
-
-
-	// Wczytaj dane do pamieci.
-
-	BYTE * data = new BYTE[(unsigned int)fileSize];
-
-	fread(data, (size_t)fileSize, 1, file);
-
-
-	// Zamknij plik.
-
-	fclose(file);
-
-
-	// Odczytaj rozmiary labiryntu.
-
-	for (WORD i = 0; i < fileSize; i++)
-
-		if (data[i] == 13) {
-
-			if (sizeY == 0)
-
-				sizeX = i;
-
-			sizeY += 1;
-
-		}
-
-
-	// Przetworz dane wczytane z pliku.
-
-	maze = new short [sizeX * sizeY];
-
-	WORD index = 0;
-
-	for (WORD y = 0; y < sizeY; y++) {
-
-		for (WORD x = 0; x < sizeX; x++)
-
-			maze[y * sizeX + x] = data[index++];
-
-		index += 2;
-
-	}
-
-	for (WORD i = 0; i < sizeX * sizeY; i++)
-
-		switch (maze[i]) {
-
-			case '0':
-				maze[i] = EMPTY;
-				break;
-
-			case '1':
-				maze[i] = WALL;
-				break;
-
-			case 'S':
-				maze[i] = START;
-				startPos = i;
-				break;
-
-			case 'K':
-				maze[i] = END;
-				endPos = i;
-				break;
-
-		}
-
-
-	// Usun niepotrzebne dane.
-
-	delete [] data;
+            case 'K':
+                maze[i] = Type::End;
+                endPos = i;
+                break;
+        }
+    }
 }
 
-//------------------------------------------------------------------------------
+void showMaze()
+{
+    system("cls");
+    
+    for (auto y = 0; y < sizeY; y++)
+    {
+        for (auto x = 0; x < sizeX; x++)
+        {
+            switch (maze[y * sizeX + x])
+            {
+                case Type::Empty:
+                    std::cout << ' ';
+                    break;
 
-// showMaze - wyswietla labirynt na ekranie.
+                case Type::Wall:
+                    std::cout << static_cast<unsigned char>(219);
+                    break;
 
-//------------------------------------------------------------------------------
+                case Type::Start:
+                    std::cout << 'S';
+                    break;
 
-void showMaze(){
+                case Type::End:
+                    std::cout << 'E';
+                    break;
 
-	// Wyczysc ekran.
+                case Type::Way:
+                    std::cout << static_cast<unsigned char>(178);
+                    break;
 
-	system("cls");
+                default:
+                    std::cout << static_cast<unsigned char>(177);
+            }
+        }
 
-
-	// Wyswietl aktualny stan labiryntu.
-
-	for (WORD y = 0; y < sizeY; y++) {
-
-		for (WORD x = 0; x < sizeX; x++)
-
-			switch (maze[y * sizeX + x]) {
-
-				case EMPTY:
-					printf("%c", 255);
-					break;
-
-				case WALL:
-					printf("%c", 219);
-					break;
-
-				case START:
-					printf("S");
-					break;
-
-				case END:
-					printf("K");
-					break;
-
-				case WAY:
-					printf("%c", 178);
-					break;
-
-				default:
-					printf("%c", 177);
-					break;
-
-			}
-
-		printf("\n");
-
-	}
-
+        std::cout << std::endl;
+    }
 }
 
-//------------------------------------------------------------------------------
+int getLeft(int n) 
+{
+    if (n % sizeX != 0)
+    {
+        return maze[n - 1];
+    }
 
-// deleteMaze - usuwa dane labiryntu z pamieci.
-
-//------------------------------------------------------------------------------
-
-void deleteMaze(){
-
-	delete [] maze;
-
-	maze		= NULL;
-	sizeX		= 0;
-	sizeY		= 0;
-	startPos	= 0;
-	endPos		= 0;
-
+    return Type::Wall;
 }
 
-//------------------------------------------------------------------------------
+int getRight(int n)
+{
+    if (n % sizeX != sizeX - 1)
+    {
+        return maze[n + 1];
+    }
 
-// Ponizsze funckje sluza do okreslania drogi w labiryncie.
-
-//------------------------------------------------------------------------------
-
-short getLeft(WORD n){
-
-	if (n % sizeX != 0)
-
-		return maze[n - 1];
-
-	return WALL;
-
+    return Type::Wall;
 }
 
-//------------------------------------------------------------------------------
+int getUpper(int n)
+{
+    if (n >= sizeX)
+    {
+        return maze[n - sizeX];
+    }
 
-short getRight(WORD n){
-
-	if (n % sizeX != sizeX - 1)
-
-		return maze[n + 1];
-
-	return WALL;
-
+    return Type::Wall;
 }
 
-//------------------------------------------------------------------------------
+int getLower(int n)
+{
+    if (n < sizeX * (sizeY - 1))
+    {
+        return maze[n + sizeX];
+    }
 
-short getUpper(WORD n){
-
-	if (n >= sizeX)
-
-		return maze[n - sizeX];
-
-	return WALL;
-
+    return Type::Wall;
 }
 
-//------------------------------------------------------------------------------
+int set(const std::list<short>& pos, int level)
+{
+    showMaze();
 
-short getLower(WORD n){
+    std::list<short> posNext;
 
-	if (n < sizeX * (sizeY - 1))
+    for (auto i = pos.begin(); i != pos.end(); i++)
+    {
+        if (getLeft(*i) == Type::End || getRight(*i) == Type::End || getUpper(*i) == Type::End || getLower(*i) == Type::End)
+        {
+            while (posNext.size())
+            {
+                posNext.pop_back();
+            }
 
-		return maze[n + sizeX];
+            return level;
+        }
 
-	return WALL;
+        if (getLeft(*i) == Type::Empty)
+        {
+            posNext.push_back(*i - 1);
+            maze[*i - 1] = level;
+        }
 
+        if (getRight(*i) == Type::Empty)
+        {
+            posNext.push_back(*i + 1);
+            maze[*i + 1] = level;
+        }
+
+        if (getUpper(*i) == Type::Empty)
+        {
+            posNext.push_back(*i - sizeX);
+            maze[*i - sizeX] = level;
+        }
+
+        if (getLower(*i) == Type::Empty)
+        {
+            posNext.push_back(*i + sizeX);
+            maze[*i + sizeX] = level;
+        }
+    }
+
+    if (posNext.size())
+    {
+        return set(posNext, level + 1);
+    }
+
+    return 0;
 }
 
-//------------------------------------------------------------------------------
+void findWay(int pos, int level)
+{
+    showMaze();
 
-WORD set(list <short> pos, WORD level, BYTE progress){
+    level -= 1;
 
-	if (progress) {
+    if (getLeft(pos) == level)
+    {
+        maze[pos - 1] = Type::Way;
 
-		showMaze();
+        if (level > 1)
+        {
+            findWay(pos - 1, level);
 
-		Sleep(25);
+            return;
+        }
+    }
+    else if (getRight(pos) == level)
+    {
+        maze[pos + 1] = Type::Way;
 
-	}
+        if (level > 1)
+        {
+            findWay(pos + 1, level);
 
-	list <short> posNext;
+            return;
+        }
+    }
+    else if (getUpper(pos) == level)
+    {
+        maze[pos - sizeX] = Type::Way;
 
-	for (list <short>::iterator i = pos.begin(); i != pos.end(); i++) {
+        if (level > 1)
+        {
+            findWay(pos - sizeX, level);
 
-		if (getLeft(*i) == END || getRight(*i) == END || getUpper(*i) == END || getLower(*i) == END) {
+            return;
+        }
+    }
+    else if (getLower(pos) == level)
+    {
+        maze[pos + sizeX] = Type::Way;
 
-			while (posNext.size())
+        if (level > 1)
+        {
+            findWay(pos + sizeX, level);
 
-				posNext.pop_back();
-
-			return level;
-
-		}
-
-		if (getLeft(*i) == EMPTY) {
-
-			posNext.push_back(*i - 1);
-			maze[*i - 1] = level;
-
-		}
-
-		if (getRight(*i) == EMPTY) {
-
-			posNext.push_back(*i + 1);
-			maze[*i + 1] = level;
-
-		}
-
-		if (getUpper(*i) == EMPTY) {
-
-			posNext.push_back(*i - sizeX);
-			maze[*i - sizeX] = level;
-
-		}
-
-		if (getLower(*i) == EMPTY) {
-
-			posNext.push_back(*i + sizeX);
-			maze[*i + sizeX] = level;
-
-		}
-
-	}
-
-	if (posNext.size())
-
-		return set(posNext, level + 1, progress);
-
-	return 0;
-
-}
-//------------------------------------------------------------------------------
-
-void findWay(WORD pos, WORD level, BYTE progress){
-
-	if (progress) {
-
-		showMaze();
-
-		Sleep(25);
-
-	}
-
-	level -= 1;
-
-	if (getLeft(pos) == level) {
-	
-		maze[pos - 1] = WAY;
-
-		if (level > 1) {
-
-			findWay(pos - 1, level, progress);
-
-			return;
-
-		}
-
-	}
-
-	else if (getRight(pos) == level) {
-
-		maze[pos + 1] = WAY;
-
-		if (level > 1) {
-
-			findWay(pos + 1, level, progress);
-
-			return;
-
-		}
-
-	}
-
-	else if (getUpper(pos) == level) {
-	
-		maze[pos - sizeX] = WAY;
-
-		if (level > 1) {
-
-			findWay(pos - sizeX, level, progress);
-
-			return;
-
-		}
-
-	}
-
-	else if (getLower(pos) == level) {
-	
-		maze[pos + sizeX] = WAY;
-
-		if (level > 1) {
-
-			findWay(pos + sizeX, level, progress);
-
-			return;
-
-		}
-
-	}
-
+            return;
+        }
+    }
 }
 
-//------------------------------------------------------------------------------
+void solveMaze()
+{
+    showMaze();
 
-// solveMaze - funckja znajduje droge w labiryncie.
+    std::list<short> pos;
 
-//------------------------------------------------------------------------------
+    pos.push_back(startPos);
 
-void solveMaze(BYTE progress){
+    auto length = set(pos, 1);
 
-	showMaze();
+    findWay(endPos, length);
+    showMaze();
 
-	list <short> pos;
+    std::cout << "Size: " << sizeX << "x" << sizeY << std::endl;
+    std::cout << "Start: " << startPos / sizeX + 1 << ":" << startPos % sizeX + 1 << std::endl;
+    std::cout << "End: " << endPos / sizeX + 1 << ":" << endPos % sizeX + 1 << std::endl;
+    std::cout << "Length: " << length << std::endl;
 
-	pos.push_back(startPos);
-
-	WORD length = set(pos, 1, progress);
-
-	findWay(endPos, length, progress);
-
-	showMaze();
-
-	printf("\nWymiary\t\t\t%i x %i", sizeX, sizeY);
-	printf("\nPozycja startowa\tx = %i\ty = %i", startPos / sizeX + 1, startPos % sizeX + 1);
-	printf("\nPozycja koncowa\t\tx = %i\ty = %i", endPos / sizeX + 1, endPos % sizeX + 1);
-	printf("\nDlugosc trasy\t\t%i", length);
-	printf("\n\n");
-
-	printf("Nacisnij klawisz, aby kontynuowac...");
-
-	_getch();
-
+    std::cin.get();
 }
 
-//------------------------------------------------------------------------------
+int main()
+{
+    char c;
 
-// main - glowna funckja programu, petla wyswietlajaca menu.
+    do 
+    {
+        std::cout << "1 - Brute force" << std::endl;
+        std::cout << "q - Quit" << std::endl;
 
-//------------------------------------------------------------------------------
+        c = std::cin.get();
 
-int main(){
+        switch (c)
+        {
+            case '1':
+            {
+                loadMaze("maze.txt");
+                solveMaze();
+                break;
+            }
+        }
+    }
+    while (c != 'q');
 
-	char c;
-
-	do {
-
-		system("cls");
-
-		printf("\n");
-		printf("Maze 1.0\n\n");
-		printf("Wojciech Holisz\n\n");
-		printf("1 - Wczytaj labirynt, wyszukaj droge\n");
-		printf("2 - Wczytaj labirynt, wyszukaj droge, wyswietlaj postep\n");
-		printf("3 - Koniec\n");
-
-		c = _getch();
-
-		switch (c) {
-
-			case '1':
-				loadMaze("maze.txt");
-				solveMaze(FALSE);
-				deleteMaze();
-				break;
-
-			case '2':
-				loadMaze("maze.txt");
-				solveMaze(TRUE);
-				deleteMaze();
-				break;
-
-		}
-
-	} while (c != '3') ;
-
-	return 0;
-
+    return 0;
 }
-
-//------------------------------------------------------------------------------
