@@ -393,7 +393,7 @@ bool a_star(Maze& maze, Search& search)
         {
             auto next_node = Node(node->x + i.x, node->y + i.y);
 
-            if (maze.is_valid(node->x, node->y))
+            if (maze.is_valid(next_node.x, next_node.y))
             {
                 if (search.is_closed(next_node) == false)
                 {
