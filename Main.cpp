@@ -6,6 +6,7 @@
 #include <iostream>
 #include <list>
 #include <memory>
+#include <set>
 #include <vector>
 
 class Node
@@ -37,6 +38,19 @@ public:
 
     Search(const Node& start, const Node& end) : start(start), end(end)
     {
+    }
+
+    ~Search()
+    {
+        for (const auto node : opened)
+        {
+            delete node;
+        }
+
+        for (const auto node : closed)
+        {
+            delete node;
+        }
     }
 
     Node get_start() const
@@ -82,13 +96,6 @@ public:
         return result != path.end();
     }
 
-    void sort()
-    {
-        std::sort(opened.begin(), opened.end(), [](Node* a, Node* b) {
-            return a->distance_to_end < b->distance_to_end;
-        });
-    }
-
     bool is_start(const Node& node) const
     {
         return start.x == node.x && start.y == node.y;
@@ -99,13 +106,27 @@ public:
         return end.x == node.x && end.y == node.y;
     }
 
+    void add_opened(const Node& node)
+    {
+        opened.push_back(new Node(node));
+
+        sort();
+    }
+
     void add_path(Node* node)
     {
-        path.emplace_back(node);
+        path.push_back(node);
     }
 private:
     const Node start;
     const Node end;
+
+    void sort()
+    {
+        std::sort(opened.begin(), opened.end(), [](Node* a, Node* b) {
+            return a->distance_to_end < b->distance_to_end;
+        });
+    }
 };
 
 class Maze
@@ -282,7 +303,6 @@ public:
                 else if (search.is_opened(Node(x, y)))
                 {
                     std::cout << static_cast<unsigned char>(177);
-
                 }
                 else if (search.is_closed(Node(x, y)))
                 {
@@ -356,26 +376,24 @@ bool a_star_path(Maze& maze, Search& search)
 
 bool a_star(Maze& maze, Search& search)
 {
-    search.opened.push_back(new Node(search.get_start()));
+    search.add_opened(search.get_start());
 
     while (search.opened.size())
     {
-        search.sort();
-
         if (search.is_end(*search.opened.front()))
         {
             return true;
         }
 
-        auto new_node = search.opened.front();
-        auto& node = *new_node;
+        auto node = search.opened.front();
+
+        search.set_current_as_visited();
 
         for (const auto& i : get_indices())
         {
-            auto new_next_node = new Node(node.x + i.x, node.y + i.y);
-            auto& next_node = *new_next_node;
+            auto next_node = Node(node->x + i.x, node->y + i.y);
 
-            if (maze.is_valid(next_node.x, next_node.y))
+            if (maze.is_valid(node->x, node->y))
             {
                 if (search.is_closed(next_node) == false)
                 {
@@ -385,16 +403,14 @@ bool a_star(Maze& maze, Search& search)
                         {
                             next_node.distance_from_start = get_distance(search.get_start(), next_node);
                             next_node.distance_to_end = get_distance(search.get_end(), next_node);
+                            next_node.parent = node;
 
-                            next_node.parent = new_node;
-                            search.opened.emplace_back(new_next_node);
+                            search.add_opened(next_node);
                         }
                     }
                 }
             }
         }
-
-        search.set_current_as_visited();
 
         maze.print(search);
     }
