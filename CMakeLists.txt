@@ -4,7 +4,9 @@ project(simple-maze-solver)
 
 add_executable(simple-maze-solver Main.cpp)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties(simple-maze-solver PROPERTIES
+    CXX_EXTENSIONS NO
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+    VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
