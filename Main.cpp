@@ -1,12 +1,8 @@
 #include <algorithm>
-#include <cmath>
 #include <deque>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <list>
-#include <memory>
-#include <set>
 #include <vector>
 
 class Node
