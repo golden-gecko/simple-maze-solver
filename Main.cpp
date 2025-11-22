@@ -1,5 +1,7 @@
-#include <iostream>
+#include <deque>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <list>
 #include <vector>
 
@@ -12,13 +14,55 @@ enum Type
     Way = -5
 };
 
-std::vector<int> maze;
+struct Node
+{
+    int x;
+    int y;
 
-int sizeX = 0;
-int sizeY = 0;
+    int depth;
 
-int startPos = 0;
-int endPos = 0;
+    float distance_from_start;
+    float distance_to_end;
+
+    Node(int x = 0, int y = 0, int depth = 0) : x(x), y(y), depth(depth), distance_from_start(0.0f), distance_to_end(0.0f)
+    {
+    }
+};
+
+std::vector<std::vector<int>> maze;
+
+int sizeX;
+int sizeY;
+
+Node startPos;
+Node endPos;
+
+std::deque<Node> nodes;
+
+bool is_valid(const Node& node)
+{
+    if (node.x < 0)
+    {
+        return false;
+    }
+
+    if (node.x > sizeX - 1)
+    {
+        return false;
+    }
+
+    if (node.y < 0)
+    {
+        return false;
+    }
+
+    if (node.y > sizeY - 1)
+    {
+        return false;
+    }
+
+    return true;
+}
 
 void loadMaze(const std::string& fileName)
 {
@@ -45,7 +89,7 @@ void loadMaze(const std::string& fileName)
         }
     }
 
-    maze.resize(sizeX * sizeY);
+    maze.resize(sizeX, std::vector<int>(sizeY));
 
     auto index = 0;
 
@@ -53,33 +97,36 @@ void loadMaze(const std::string& fileName)
     {
         for (auto x = 0; x < sizeX; x++)
         {
-            maze[y * sizeX + x] = data[index++];
+            maze[x][y] = data[index++];
         }
 
         index += 1;
     }
 
-    for (auto i = 0; i < sizeX * sizeY; i++)
+    for (auto y = 0; y < sizeY; y++)
     {
-        switch (maze[i])
+        for (auto x = 0; x < sizeX; x++)
         {
-            case '0':
-                maze[i] = Type::Empty;
-                break;
+            switch (maze[x][y])
+            {
+                case ' ':
+                    maze[x][y] = Type::Empty;
+                    break;
 
-            case '1':
-                maze[i] = Type::Wall;
-                break;
+                case '#':
+                    maze[x][y] = Type::Wall;
+                    break;
 
-            case 'S':
-                maze[i] = Type::Start;
-                startPos = i;
-                break;
+                case 'S':
+                    maze[x][y] = Type::Start;
+                    startPos = Node(x, y);
+                    break;
 
-            case 'K':
-                maze[i] = Type::End;
-                endPos = i;
-                break;
+                case 'E':
+                    maze[x][y] = Type::End;
+                    endPos = Node(x, y);
+                    break;
+            }
         }
     }
 }
@@ -92,7 +139,7 @@ void showMaze()
     {
         for (auto x = 0; x < sizeX; x++)
         {
-            switch (maze[y * sizeX + x])
+            switch (maze[x][y])
             {
                 case Type::Empty:
                     std::cout << ' ';
@@ -123,192 +170,121 @@ void showMaze()
     }
 }
 
-int getLeft(int n) 
+bool a_star()
 {
-    if (n % sizeX != 0)
+    maze[startPos.x][startPos.y] = 0;
+    nodes.push_back(startPos);
+
+    while (nodes.size() > 0)
     {
-        return maze[n - 1];
-    }
+        auto node = nodes.front();
 
-    return Type::Wall;
-}
-
-int getRight(int n)
-{
-    if (n % sizeX != sizeX - 1)
-    {
-        return maze[n + 1];
-    }
-
-    return Type::Wall;
-}
-
-int getUpper(int n)
-{
-    if (n >= sizeX)
-    {
-        return maze[n - sizeX];
-    }
-
-    return Type::Wall;
-}
-
-int getLower(int n)
-{
-    if (n < sizeX * (sizeY - 1))
-    {
-        return maze[n + sizeX];
-    }
-
-    return Type::Wall;
-}
-
-int set(const std::list<short>& pos, int level)
-{
-    showMaze();
-
-    std::list<short> posNext;
-
-    for (auto i = pos.begin(); i != pos.end(); i++)
-    {
-        if (getLeft(*i) == Type::End || getRight(*i) == Type::End || getUpper(*i) == Type::End || getLower(*i) == Type::End)
+        Node indices[4] =
         {
-            while (posNext.size())
+            Node(-1,  0),
+            Node( 1,  0),
+            Node( 0, -1),
+            Node( 0,  1)
+        };
+
+        for (auto i = 0; i < 4; ++i)
+        {
+            auto next_node = Node(node.x + indices[i].x, node.y + indices[i].y, node.depth + 1);
+
+            if (maze[next_node.x][next_node.y] == Type::End)
             {
-                posNext.pop_back();
+                maze[next_node.x][next_node.y] = next_node.depth;
+
+                return true;
             }
 
-            return level;
+            if (is_valid(next_node))
+            {
+                if (maze[next_node.x][next_node.y] == Type::Empty)
+                {
+                    if (maze[next_node.x][next_node.y] < 0)
+                    {
+                        maze[next_node.x][next_node.y] = next_node.depth;
+
+                        nodes.push_back(next_node);
+                    }
+                }
+            }
         }
 
-        if (getLeft(*i) == Type::Empty)
-        {
-            posNext.push_back(*i - 1);
-            maze[*i - 1] = level;
-        }
-
-        if (getRight(*i) == Type::Empty)
-        {
-            posNext.push_back(*i + 1);
-            maze[*i + 1] = level;
-        }
-
-        if (getUpper(*i) == Type::Empty)
-        {
-            posNext.push_back(*i - sizeX);
-            maze[*i - sizeX] = level;
-        }
-
-        if (getLower(*i) == Type::Empty)
-        {
-            posNext.push_back(*i + sizeX);
-            maze[*i + sizeX] = level;
-        }
+        nodes.pop_front();
     }
 
-    if (posNext.size())
-    {
-        return set(posNext, level + 1);
-    }
-
-    return 0;
+    return false;
 }
 
-void findWay(int pos, int level)
+bool a_star_path()
 {
-    showMaze();
+    auto node = Node(endPos.x, endPos.y);
+    auto depth = maze[node.x][node.y];
 
-    level -= 1;
+    maze[node.x][node.y] = Type::Way;
 
-    if (getLeft(pos) == level)
+    while (node.x != startPos.x || node.y != startPos.y)
     {
-        maze[pos - 1] = Type::Way;
-
-        if (level > 1)
+        Node indices[4] =
         {
-            findWay(pos - 1, level);
+            Node(-1,  0),
+            Node( 1,  0),
+            Node( 0, -1),
+            Node( 0,  1)
+        };
 
-            return;
+        auto found = false;
+
+        for (auto i = 0; i < 4; ++i)
+        {
+            auto next_node = Node(node.x + indices[i].x, node.y + indices[i].y);
+            auto next_depth = maze[next_node.x][next_node.y];
+
+            if (is_valid(next_node))
+            {
+                if (maze[next_node.x][next_node.y] >= 0)
+                {
+                    if (next_depth < depth)
+                    {
+                        maze[next_node.x][next_node.y] = Type::Way;
+
+                        node = next_node;
+                        depth = next_depth;
+
+                        found = true;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (found == false)
+        {
+            return false;
         }
     }
-    else if (getRight(pos) == level)
-    {
-        maze[pos + 1] = Type::Way;
 
-        if (level > 1)
-        {
-            findWay(pos + 1, level);
-
-            return;
-        }
-    }
-    else if (getUpper(pos) == level)
-    {
-        maze[pos - sizeX] = Type::Way;
-
-        if (level > 1)
-        {
-            findWay(pos - sizeX, level);
-
-            return;
-        }
-    }
-    else if (getLower(pos) == level)
-    {
-        maze[pos + sizeX] = Type::Way;
-
-        if (level > 1)
-        {
-            findWay(pos + sizeX, level);
-
-            return;
-        }
-    }
-}
-
-void solveMaze()
-{
-    showMaze();
-
-    std::list<short> pos;
-
-    pos.push_back(startPos);
-
-    auto length = set(pos, 1);
-
-    findWay(endPos, length);
-    showMaze();
-
-    std::cout << "Size: " << sizeX << "x" << sizeY << std::endl;
-    std::cout << "Start: " << startPos / sizeX + 1 << ":" << startPos % sizeX + 1 << std::endl;
-    std::cout << "End: " << endPos / sizeX + 1 << ":" << endPos % sizeX + 1 << std::endl;
-    std::cout << "Length: " << length << std::endl;
-
-    std::cin.get();
+    return true;
 }
 
 int main()
 {
-    char c;
+    loadMaze("Maze.txt");
 
-    do 
+    if (a_star())
     {
-        std::cout << "1 - Brute force" << std::endl;
-        std::cout << "q - Quit" << std::endl;
-
-        c = std::cin.get();
-
-        switch (c)
-        {
-            case '1':
-            {
-                loadMaze("maze.txt");
-                solveMaze();
-                break;
-            }
-        }
+        a_star_path();
     }
-    while (c != 'q');
+
+    maze[startPos.x][startPos.y] = Type::Start;
+    maze[endPos.x][endPos.y] = Type::End;
+
+    showMaze();
+
+    std::cin.ignore();
 
     return 0;
 }
