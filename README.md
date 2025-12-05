@@ -1,3 +1,3 @@
 # A* maze solver
 
-(/docs/screen_1.png?raw=true)
+![Alt text](/docs/screen_1.png "Optional title")
