@@ -117,25 +117,25 @@ void Maze::load(const std::string& fileName)
         {
             switch (maze[x][y])
             {
-            case ' ':
-                maze[x][y] = Type::Empty;
-                break;
+                case ' ':
+                    maze[x][y] = Type::Empty;
+                    break;
 
-            case '#':
-                maze[x][y] = Type::Wall;
-                break;
+                case '#':
+                    maze[x][y] = Type::Wall;
+                    break;
 
-            case 'S':
-                maze[x][y] = Type::Empty;
-                start.x = x;
-                start.y = y;
-                break;
+                case 'S':
+                    maze[x][y] = Type::Empty;
+                    start.x = x;
+                    start.y = y;
+                    break;
 
-            case 'E':
-                maze[x][y] = Type::Empty;
-                end.x = x;
-                end.y = y;
-                break;
+                case 'E':
+                    maze[x][y] = Type::Empty;
+                    end.x = x;
+                    end.y = y;
+                    break;
             }
         }
     }
@@ -173,17 +173,19 @@ void Maze::print(const Search& search) const
             {
                 switch (maze[x][y])
                 {
-                case Type::Empty:
-                    std::cout << ' ';
-                    break;
+                    case Type::Empty:
+                        std::cout << ' ';
+                        break;
 
-                case Type::Wall:
-                    std::cout << static_cast<unsigned char>(219);
-                    break;
+                    case Type::Wall:
+                        std::cout << static_cast<unsigned char>(219);
+                        break;
                 }
             }
         }
 
-        std::cout << std::endl;
+        std::cout << '\n';
     }
+
+    std::cout.flush();
 }

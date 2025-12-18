@@ -4,6 +4,7 @@ project(simple-maze-solver)
 
 add_executable(
     simple-maze-solver
+    AStar.cpp AStar.hpp
     Main.cpp
     Maze.cpp Maze.hpp
     Node.cpp Node.hpp
