@@ -2,7 +2,6 @@
 
 #include "Node.hpp"
 #include "Maze.hpp"
-#include "Search.hpp"
 
 class AStar
 {

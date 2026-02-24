@@ -1,4 +1,5 @@
 #include "AStar.hpp"
+#include "Search.hpp"
 
 bool AStar::a_star_path(Maze& maze, Search& search) const
 {
@@ -20,7 +21,7 @@ bool AStar::a_star(Maze& maze, Search& search) const
 {
     search.add_opened(search.get_start());
 
-    while (search.opened.size())
+    while (search.opened.empty() == false)
     {
         if (search.is_end(*search.opened.front()))
         {

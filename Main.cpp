@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "AStar.hpp"
+#include "Search.hpp"
 
 int main()
 {

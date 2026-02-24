@@ -5,15 +5,15 @@
 class Node
 {
 public:
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
 
-    int distance_from_start;
-    int distance_to_end;
+    int distance_from_start = 0;
+    int distance_to_end = 0;
 
-    int type;
+    int type = 0;
 
-    Node* parent;
+    Node* parent = nullptr;
     std::list<Node*> children;
 
     Node(int x = 0, int y = 0);

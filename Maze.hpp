@@ -21,14 +21,13 @@ public:
         Visited = -6
     };
 
-    Maze(const std::string file);
+    Maze(const std::string& file);
 
     int get(int x, int y) const;
     Node get_start() const;
     Node get_end() const;
 
     bool is_accessible(int x, int y) const;
-    bool is_accessible(int x_1, int y_1, int x_2, int y_2) const;
     bool is_valid(int x, int y) const;
 
     void clear_way();
@@ -36,8 +35,8 @@ public:
     void print(const Search& search) const;
 
 private:
-    int size_x;
-    int size_y;
+    int size_x = 0;
+    int size_y = 0;
 
     std::vector<std::vector<int>> maze;
 

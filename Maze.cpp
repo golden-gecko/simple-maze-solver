@@ -3,7 +3,7 @@
 #include "Maze.hpp"
 #include "Search.hpp"
 
-Maze::Maze(const std::string file)
+Maze::Maze(const std::string& file)
 {
     load(file);
 }
@@ -26,11 +26,6 @@ Node Maze::get_end() const
 bool Maze::is_accessible(int x, int y) const
 {
     return get(x, y) == Type::Empty;
-}
-
-bool Maze::is_accessible(int x_1, int y_1, int x_2, int y_2) const
-{
-    return false;
 }
 
 bool Maze::is_valid(int x, int y) const
@@ -76,7 +71,7 @@ void Maze::load(const std::string& fileName)
 {
     std::ifstream file(fileName, std::ios::binary | std::ios::ate);
     auto fileSize = file.tellg();
-    file.seekg(0, file.beg);
+    file.seekg(0, std::ifstream::beg);
     std::vector<char> data(fileSize);
     file.read(data.data(), fileSize);
     file.close();
