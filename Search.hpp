@@ -1,18 +1,18 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 
 #include "Node.hpp"
 
 class Search
 {
 public:
-    std::deque<Node*> opened;
-    std::deque<Node*> closed;
+    std::deque<std::unique_ptr<Node>> opened;
+    std::deque<std::unique_ptr<Node>> closed;
     std::deque<Node*> path;
 
     Search(const Node& start, const Node& end);
-    ~Search();
 
     Node get_start() const;
     Node get_end() const;

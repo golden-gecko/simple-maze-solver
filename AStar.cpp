@@ -3,7 +3,7 @@
 
 bool AStar::a_star_path(Maze& maze, Search& search) const
 {
-    auto node = search.opened.front();
+    auto node = search.opened.front().get();
 
     while (search.is_start(*node) == false)
     {
@@ -28,7 +28,7 @@ bool AStar::a_star(Maze& maze, Search& search) const
             return true;
         }
 
-        auto node = search.opened.front();
+        auto node = search.opened.front().get();
 
         search.set_current_as_visited();
 
