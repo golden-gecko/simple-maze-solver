@@ -1,0 +1,5 @@
+{
+    "cmake.useCMakePresets": "always",
+    "cmake.defaultConfigurePreset": "gcc-debug",
+    "cmake.defaultBuildPreset": "gcc-debug"
+}
