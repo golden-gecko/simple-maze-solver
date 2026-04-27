@@ -74,6 +74,6 @@ void Search::add_path(Node* node)
 void Search::sort()
 {
     std::sort(opened.begin(), opened.end(), [](const std::unique_ptr<Node>& a, const std::unique_ptr<Node>& b) {
-        return a->distance_to_end < b->distance_to_end;
+        return (a->distance_from_start + a->distance_to_end) < (b->distance_from_start + b->distance_to_end);
     });
 }

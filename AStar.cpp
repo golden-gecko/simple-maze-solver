@@ -44,7 +44,7 @@ bool AStar::a_star(Maze& maze, Search& search) const
                     {
                         if (maze.is_accessible(next_node.x, next_node.y))
                         {
-                            next_node.distance_from_start = get_distance(search.get_start(), next_node);
+                            next_node.distance_from_start = node->distance_from_start + 1;
                             next_node.distance_to_end = get_distance(search.get_end(), next_node);
                             next_node.parent = node;
 
