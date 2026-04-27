@@ -66,7 +66,7 @@ int AStar::get_distance(const Node& a, const Node& b) const
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 }
 
-std::vector<Node> AStar::get_indices() const
+const std::vector<Node>& AStar::get_indices() const
 {
     static const std::vector<Node> indices =
     {

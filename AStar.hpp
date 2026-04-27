@@ -11,5 +11,5 @@ public:
 
 private:
     int get_distance(const Node& a, const Node& b) const;
-    std::vector<Node> get_indices() const;
+    const std::vector<Node>& get_indices() const;
 };
