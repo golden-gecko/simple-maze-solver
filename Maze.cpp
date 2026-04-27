@@ -67,19 +67,19 @@ void Maze::clear_way()
     }
 }
 
-void Maze::load(const std::string& fileName)
+void Maze::load(const std::string& file_name)
 {
-    std::ifstream file(fileName, std::ios::binary | std::ios::ate);
-    auto fileSize = file.tellg();
+    std::ifstream file(file_name, std::ios::binary | std::ios::ate);
+    auto file_size = file.tellg();
     file.seekg(0, std::ifstream::beg);
-    std::vector<char> data(fileSize);
-    file.read(data.data(), fileSize);
+    std::vector<char> data(file_size);
+    file.read(data.data(), file_size);
     file.close();
 
     size_x = 0;
     size_y = 0;
 
-    for (auto i = 0; i < fileSize; i++)
+    for (auto i = 0; i < file_size; i++)
     {
         if (data[i] == '\n')
         {

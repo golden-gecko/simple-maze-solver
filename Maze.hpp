@@ -31,7 +31,7 @@ public:
     bool is_valid(int x, int y) const;
 
     void clear_way();
-    void load(const std::string& fileName);
+    void load(const std::string& file_name);
     void print(const Search& search) const;
 
 private:

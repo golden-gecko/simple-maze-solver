@@ -24,7 +24,8 @@ void Search::set_current_as_visited()
 
 bool Search::is_opened(const Node& node) const
 {
-    auto result = std::find_if(opened.begin(), opened.end(), [&node](const std::unique_ptr<Node>& i) {
+    auto result = std::find_if(opened.begin(), opened.end(), [&node](const std::unique_ptr<Node>& i)
+    {
         return node.x == i->x && node.y == i->y;
     });
 
@@ -33,7 +34,8 @@ bool Search::is_opened(const Node& node) const
 
 bool Search::is_closed(const Node& node) const
 {
-    auto result = std::find_if(closed.begin(), closed.end(), [&node](const std::unique_ptr<Node>& i) {
+    auto result = std::find_if(closed.begin(), closed.end(), [&node](const std::unique_ptr<Node>& i)
+    {
         return node.x == i->x && node.y == i->y;
     });
 
@@ -42,7 +44,8 @@ bool Search::is_closed(const Node& node) const
 
 bool Search::is_path(const Node& node) const
 {
-    auto result = std::find_if(path.begin(), path.end(), [node](Node* i) {
+    auto result = std::find_if(path.begin(), path.end(), [&node](Node* i)
+    {
         return node.x == i->x && node.y == i->y;
     });
 
@@ -73,7 +76,8 @@ void Search::add_path(Node* node)
 
 void Search::sort()
 {
-    std::sort(opened.begin(), opened.end(), [](const std::unique_ptr<Node>& a, const std::unique_ptr<Node>& b) {
+    std::sort(opened.begin(), opened.end(), [](const std::unique_ptr<Node>& a, const std::unique_ptr<Node>& b)
+    {
         return (a->distance_from_start + a->distance_to_end) < (b->distance_from_start + b->distance_to_end);
     });
 }
