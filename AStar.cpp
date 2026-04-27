@@ -1,64 +1,61 @@
 #include "AStar.hpp"
 #include "Search.hpp"
 
-bool AStar::a_star_path(Maze& maze, Search& search) const
+AStar::SearchState AStar::a_star_step(Maze& maze, Search& search) const
 {
-    auto node = search.opened.front().get();
-
-    while (search.is_start(*node) == false)
+    if (search.opened.empty())
     {
-        search.add_path(node);
-
-        maze.print(search);
-
-        node = node->parent;
+        return SearchState::NotFound;
     }
 
-    return true;
+    if (search.is_end(*search.opened.front()))
+    {
+        return SearchState::Found;
+    }
+
+    auto node = search.opened.front().get();
+
+    search.set_current_as_visited();
+
+    for (const auto& i : get_indices())
+    {
+        auto next_node = Node(node->x + i.x, node->y + i.y);
+
+        if (maze.is_valid(next_node.x, next_node.y))
+        {
+            if (search.is_closed(next_node) == false)
+            {
+                if (search.is_opened(next_node) == false)
+                {
+                    if (maze.is_accessible(next_node.x, next_node.y))
+                    {
+                        next_node.distance_from_start = node->distance_from_start + 1;
+                        next_node.distance_to_end = get_distance(search.get_end(), next_node);
+                        next_node.parent = node;
+
+                        search.add_opened(next_node);
+                    }
+                }
+            }
+        }
+    }
+
+    return SearchState::Searching;
 }
 
 bool AStar::a_star(Maze& maze, Search& search) const
 {
     search.add_opened(search.get_start());
 
-    while (search.opened.empty() == false)
+    SearchState state;
+
+    do
     {
-        if (search.is_end(*search.opened.front()))
-        {
-            return true;
-        }
-
-        auto node = search.opened.front().get();
-
-        search.set_current_as_visited();
-
-        for (const auto& i : get_indices())
-        {
-            auto next_node = Node(node->x + i.x, node->y + i.y);
-
-            if (maze.is_valid(next_node.x, next_node.y))
-            {
-                if (search.is_closed(next_node) == false)
-                {
-                    if (search.is_opened(next_node) == false)
-                    {
-                        if (maze.is_accessible(next_node.x, next_node.y))
-                        {
-                            next_node.distance_from_start = node->distance_from_start + 1;
-                            next_node.distance_to_end = get_distance(search.get_end(), next_node);
-                            next_node.parent = node;
-
-                            search.add_opened(next_node);
-                        }
-                    }
-                }
-            }
-        }
-
-        maze.print(search);
+        state = a_star_step(maze, search);
     }
+    while (state == SearchState::Searching);
 
-    return false;
+    return state == SearchState::Found;
 }
 
 int AStar::get_distance(const Node& a, const Node& b) const

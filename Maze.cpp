@@ -1,7 +1,4 @@
-#include <iostream>
-
 #include "Maze.hpp"
-#include "Search.hpp"
 
 Maze::Maze(const std::string& file)
 {
@@ -11,6 +8,16 @@ Maze::Maze(const std::string& file)
 int Maze::get(int x, int y) const
 {
     return maze[x][y];
+}
+
+int Maze::get_size_x() const
+{
+    return size_x;
+}
+
+int Maze::get_size_y() const
+{
+    return size_y;
 }
 
 Node Maze::get_start() const
@@ -51,20 +58,6 @@ bool Maze::is_valid(int x, int y) const
     }
 
     return true;
-}
-
-void Maze::clear_way()
-{
-    for (auto y = 0; y < size_y; y++)
-    {
-        for (auto x = 0; x < size_x; x++)
-        {
-            if (maze[x][y] == Type::Way)
-            {
-                maze[x][y] = Type::Visited;
-            }
-        }
-    }
 }
 
 void Maze::load(const std::string& file_name)
@@ -134,53 +127,4 @@ void Maze::load(const std::string& file_name)
             }
         }
     }
-}
-
-void Maze::print(const Search& search) const
-{
-    std::system("cls");
-
-    for (auto y = 0; y < size_y; y++)
-    {
-        for (auto x = 0; x < size_x; x++)
-        {
-            if (search.is_start(Node(x, y)))
-            {
-                std::cout << 'S';
-            }
-            else if (search.is_end(Node(x, y)))
-            {
-                std::cout << 'E';
-            }
-            else if (search.is_path(Node(x, y)))
-            {
-                std::cout << static_cast<unsigned char>(178);
-            }
-            else if (search.is_opened(Node(x, y)))
-            {
-                std::cout << static_cast<unsigned char>(177);
-            }
-            else if (search.is_closed(Node(x, y)))
-            {
-                std::cout << static_cast<unsigned char>(177);
-            }
-            else
-            {
-                switch (maze[x][y])
-                {
-                    case Type::Empty:
-                        std::cout << ' ';
-                        break;
-
-                    case Type::Wall:
-                        std::cout << static_cast<unsigned char>(219);
-                        break;
-                }
-            }
-        }
-
-        std::cout << '\n';
-    }
-
-    std::cout.flush();
 }
