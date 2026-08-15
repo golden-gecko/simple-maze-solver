@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "Maze.hpp"
 
 Maze::Maze(const std::string& file)
@@ -59,49 +61,62 @@ bool Maze::is_valid(int x, int y) const
 
     return true;
 }
-
 void Maze::load(const std::string& file_name)
 {
-    std::ifstream file(file_name, std::ios::binary | std::ios::ate);
-    auto file_size = file.tellg();
-    file.seekg(0, std::ifstream::beg);
-    std::vector<char> data(file_size);
-    file.read(data.data(), file_size);
-    file.close();
+    std::ifstream file(file_name, std::ios::binary);
+    if (!file)
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    // Read entire file into a string without precomputing size
+    std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    if (data.empty())
+    {
+        throw std::runtime_error("Empty or unreadable file: " + file_name);
+    }
+
+    // Normalize CRLF -> LF
+    data.erase(std::remove(data.begin(), data.end(), '\r'), data.end());
 
     size_x = 0;
     size_y = 0;
+    const std::size_t file_size = data.size();
 
-    for (auto i = 0; i < file_size; i++)
+    for (std::size_t i = 0; i < file_size; ++i)
     {
         if (data[i] == '\n')
         {
             if (size_y == 0)
             {
-                size_x = i;
+                size_x = static_cast<int>(i);
             }
 
-            size_y += 1;
+            ++size_y;
         }
     }
 
-    maze.resize(size_x, std::vector<int>(size_y));
+    maze.assign(size_x, std::vector<int>(size_y));
 
-    auto index = 0;
-
-    for (auto y = 0; y < size_y; y++)
+    std::size_t index = 0;
+    for (int y = 0; y < size_y; ++y)
     {
-        for (auto x = 0; x < size_x; x++)
+        for (int x = 0; x < size_x; ++x)
         {
+            if (index >= file_size)
+            {
+                throw std::runtime_error("Unexpected end of file while parsing: " + file_name);
+            }
             maze[x][y] = data[index++];
         }
 
-        index += 1;
+        // Skip newline separator if present
+        if (index < file_size && data[index] == '\n') ++index;
     }
 
-    for (auto y = 0; y < size_y; y++)
+    for (int y = 0; y < size_y; ++y)
     {
-        for (auto x = 0; x < size_x; x++)
+        for (int x = 0; x < size_x; ++x)
         {
             switch (maze[x][y])
             {
@@ -123,6 +138,8 @@ void Maze::load(const std::string& file_name)
                     maze[x][y] = Type::Empty;
                     end.x = x;
                     end.y = y;
+                    break;
+                default:
                     break;
             }
         }
