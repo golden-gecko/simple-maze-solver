@@ -1,4 +1,8 @@
 # A* maze solver
 
-![Alt text](/docs/maze-1.png)
-![Alt text](/docs/maze-2.png)
+Demo of A* algorithm solving a maze.
+
+## Screenshots
+
+![Alt text](docs/maze-1.png)
+![Alt text](docs/maze-2.png)
