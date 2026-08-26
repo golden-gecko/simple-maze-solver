@@ -4,9 +4,9 @@ name: CMake on a single platform
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "golden-gecko-patch-1" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "golden-gecko-patch-1" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
