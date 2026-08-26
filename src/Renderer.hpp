@@ -18,5 +18,5 @@ public:
     void render(const Maze& maze, const Search& search) const;
 
 private:
-    GLFWwindow* window;
+    GLFWwindow* window = nullptr;
 };
